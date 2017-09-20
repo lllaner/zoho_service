@@ -1,0 +1,26 @@
+#!/usr/bin/env ruby
+require 'zoho_service'
+
+# puts "\n\n end3 \n\n"
+c = ZohoService::ApiConnector.new('224d6ade955bbb18f82ebd00f5c6642e', {}, true)
+# c = ZohoService::Connector.new('9d6e1cbaa1b321541c73fd679c78bf98')
+
+
+# puts "\n token222=[#{c.to_json}] \n\n"
+# organizations = c.organizations
+# puts "\n\n organizations=[#{organizations.to_json}] \n\n"
+
+# tickets = c.tickets
+# tickets.each { |t|
+#   puts "\n\n t=[#{t.id}] \n [#{t.to_json}]\n\n"
+#   # full = t.full
+#   puts "\n\n full=[#{t.full.id}][#{t.full.commentCount}] \n [#{t.full.to_json}]\n\n"
+# }
+# puts "\n\n tickets=[#{tickets.to_json}] \n\n"
+
+tic = c.tickets.first
+puts "\n\n tic=[#{tic.full.to_json}] comments=[#{tic.comments.to_json}]\n\n"
+# # ddd = ZohoService::ZohoServiceClient::Demo.new
+# # ddd.print_self_demo
+# t = ZohoService::Ticket.new(parent: c)
+# t.attachments
