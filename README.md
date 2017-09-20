@@ -8,20 +8,21 @@ https://desk.zoho.com/DeskAPIDocument#Introduction
 ## Support Modules (see and onn/off at lib/zoho_service.rb)
 * organizations
 * tickets
-    comments
-    threads
-    attachments
-    timeEntries
+    ** comments
+    ** threads
+    ** attachments
+    ** timeEntries
 * contacts
 * accounts
 * tasks
 * agents
-- departments
+* departments
+### Not ready yet:
 - uploads
 - search
-    searchStr
-    from & limit
-    sortBy
+    ** searchStr
+    ** from & limit
+    ** sortBy
 - mailReplyAddress
 
 ## Installation

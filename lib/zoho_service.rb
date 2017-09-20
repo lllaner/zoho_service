@@ -36,4 +36,4 @@ end
 ZohoService::init_models_recursion(5, ([
   #[model_name, [childs_array], {params}]
   ['Ticket', %w[Comment Thread Attachment TimeEntry]]
-] + %w[Organization Contact Account Task Agents]), ZohoService::ApiConnector)
+] + %w[Organization Contact Account Task Agent Department]), ZohoService::ApiConnector)
