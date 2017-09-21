@@ -1,3 +1,6 @@
+require 'httparty'
+require 'forwardable'
+
 module ZohoService
   class ApiConnector < Base
     attr_reader :token, :client_params, :debug
@@ -10,15 +13,28 @@ module ZohoService
       @client_params[:orgId] = organizations.first.id unless @client_params[:orgId]
     end
 
+    def resource_path
+      'https://desk.zoho.com/api/v1'
+    end
+
     def get_headers(params = {})
       client_headers = { 'Authorization': 'Zoho-authtoken  ' + @token }
-      client_headers[:orgId] = @client_params[:orgId] if @client_params[:orgId] && !params[:skip_orgId]
+      client_headers[:orgId] = @client_params[:orgId] if @client_params[:orgId]
       self.class.headers.merge(client_headers)
     end
 
-    def load_by_api(url, query = {}, params = {})
-      url = URI.encode('https://desk.zoho.com/api/v1' + url)
-      response = HTTParty.get(url, { headers: get_headers(params) })
+    def load_by_api(url, query = nil, params = {})
+      url = URI.encode(url)
+      request_params = { headers: get_headers(params) }
+      if params[:method] == :post
+        response = HTTParty.post(url, request_params.merge(body: query.to_json))
+      elsif params[:method] == :patch
+        response = HTTParty.patch(url, request_params.merge(body: query.to_json))
+      elsif params[:method] == :delete
+        response = HTTParty.delete(url, request_params)
+      else
+        response = HTTParty.get(url + (query ? '?' + query.to_query : ''), request_params)
+      end
       if response && response.code == 200
         $stderr.puts "url=[#{url}] length=[#{response.to_json.length}] cnt=[#{response['data']&.count}]\n" if @debug
         return response['data'] ? response['data'] : response
@@ -28,13 +44,13 @@ module ZohoService
     end
 
     def bad_response(response, url, query, headers, params)
-      $stderr.puts "ZohoService API bad_response url=[#{url}], query=[#{query.to_json}]\n"
+      $stderr.puts "ZohoService API bad_response url=[#{url}], query=[#{query&.to_json}] \n\n params=[#{params.to_json}]\n"
       $stderr.puts(response ? "code=[#{response.code}] body=[#{response.body}]\n" : "Unknown error in load_by_api.\n")
     end
 
     class << self
       def headers
-        { 'User-Agent'    => 'ZohoProjects-Ruby-Wrappers/0.0.7',
+        { 'User-Agent'    => 'ZohoService-Ruby-On-Rails-gem-by-chaky222/' + ZohoService::VERSION,
           'Accept'        => 'application/json',
           'Content-Type'  => 'application/x-www-form-urlencoded',
           'Accept-Charset'=> 'UTF-8' }.freeze

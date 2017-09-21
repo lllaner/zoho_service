@@ -1,16 +1,14 @@
-require 'httparty'
 require 'ostruct'
-require 'forwardable'
 
 module ZohoService
   class Base < OpenStruct
-    attr_reader :parent, :item_id, :table, :full_data
+    attr_reader :parent, :item_id, :table, :full_data, :errors
 
     def initialize(parent = nil, data = nil, params = {})
       @parent = parent
       @item_id = params[:item_id] || ((data && data['id']) ? data['id'] : nil)
       super(data)
-      load_full(data) if params[:full_data]
+      @full_data = params[:full_data]
     end
 
     def connector
@@ -22,17 +20,65 @@ module ZohoService
     end
 
     def full
-      @full_data || load_full
+      load_full unless @full_data
+      self
     end
 
     def load_full(data = nil)
-      @full_data = OpenStruct.new(data || connector.load_by_api(resource_path))
-      @full_data
+      raise('You must save model before take full data in ZohoService gem.') unless @item_id
+      init_data(data || connector.load_by_api(resource_path))
+      @full_data = true
+    end
+
+    def init_data(data)
+      data.each{ |k, v| @table[k.to_sym] = v; new_ostruct_member(k); }
+      @item_id = id if id && !@item_id
+    end
+
+    def update(params)
+      url = @item_id ? resource_path : parent.resource_path + self.class.class_path
+      response = connector.load_by_api(url, params.to_hash, { method: @item_id ? :patch : :post })
+      if response['message']
+        @errors << response['message']
+      else
+        init_data(response.to_hash)
+        @full_data = nil
+      end
+      self
+    end
+
+    def delete
+      return unless @item_id
+      response = connector.load_by_api(resource_path, nil, { method: :delete })
+      if response['message']
+        @errors << response['message']
+      else
+        @item_id = nil
+        @id = nil
+        @full_data = nil
+      end
+      self
+    end
+
+    def delete!
+      delete
+      raise("Error while delete! in ZohoService gem. errors=[@errors.to_json]") if @errors
+      self
+    end
+
+    def save
+      update(to_hash)
+    end
+
+    def save!
+      save
+      raise("Error while save! in ZohoService gem. errors=[@errors.to_json]") if @errors
+      self
     end
 
     def resource_path
-      return '' unless @item_id
-      self.class.class_path(@item_id)
+      raise('Cant take resource_path for not saved item in ZohoService gem.') unless @item_id
+      parent.resource_path + self.class.class_path(@item_id)
     end
 
     def to_hash

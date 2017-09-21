@@ -1,7 +1,3 @@
-require 'httparty'
-require 'ostruct'
-require 'forwardable'
-
 module ZohoService
   class ApiCollection < Array
     attr_reader :parent, :request_params, :loaded
@@ -16,10 +12,25 @@ module ZohoService
     def run_request(eval_method)
       return if @loaded
       @loaded = true
-      items_class = ZohoService::const_get(request_params[:items_class])
-      parent.connector.load_by_api(parent.resource_path + items_class.class_path)&.each do |item_data|
+      parent.connector.load_by_api(collection_url)&.each do |item_data|
         self << items_class.new(parent, item_data )
       end
+    end
+
+    def new(item_params)
+      items_class.new(parent, item_params)
+    end
+
+    def create(item_params)
+      new(item_params).save!
+    end
+
+    def items_class
+      ZohoService::const_get(request_params[:items_class])
+    end
+
+    def collection_url
+      parent.resource_path + items_class.class_path
     end
   end
 
