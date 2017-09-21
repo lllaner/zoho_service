@@ -62,7 +62,7 @@ zoho_conn = ZohoService::ApiConnector.new('224d6ade955bbb18f82ebd00f5c6642e', {}
 
 ticket = zoho_conn.tickets.new({
   "subCategory": "Sub General",
-  "contactId": contact = zoho_conn.contacts.first.id,
+  "contactId": zoho_conn.contacts.first.id,
   "subject": "100500 started",
   "dueDate": (Time.now + 300.days).utc,
   "departmentId": zoho_conn.departments.first.id,
