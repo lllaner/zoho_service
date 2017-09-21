@@ -24,9 +24,16 @@ module ZohoService
       current_class = Class.new(Base)
       const_set(model[:name], current_class)
       current_class.send(:define_method, parent_name) { |params = {}| get_parent(__method__, params) }
-      parent_class.send(:define_method, ZohoService::name_to_many(model[:name])) do |params = {}|
-        ApiCollection.new(self, params.merge(items_class: model[:name]))
+      parent_class.send(:define_method, ZohoService::name_to_many(model[:name])) do
+        get_childs(__method__.to_sym, current_class)
       end
+
+      #   @table[__method__.to_sym] = ApiCollection.new(self, { items_class: model[:name] }) unless @table[__method__.to_sym]
+      #   @table[__method__.to_sym]
+      # end
+      # parent_class.send(:define_method, ZohoService::name_to_many(model[:name])) do |params = {}|
+      #   ApiCollection.new(self, params.merge(items_class: model[:name]))
+      # end
       init_models_recursion(recursion - 1, model[:childs], current_class) if model[:childs]
     end
     parent_class.class.send(:define_method, 'childs_list') { models.map { |x| x[:name] }.sort }

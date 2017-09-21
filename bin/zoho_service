@@ -3,8 +3,13 @@ require 'zoho_service'
 
 zoho_conn = ZohoService::ApiConnector.new('224d6ade955bbb18f82ebd00f5c6642e', {}, true)
 
+# zoho_conn.tickets
+
+# puts "\n\n tickets=[#{zoho_conn.tickets}] \n\n"
+
 # ticket = c.tickets.first.update(subject: 'zzzz Вот ваш первый талон.')
-# ticket = c.tickets.first
+# ticket = zoho_conn.tickets.first
+# comm = ticket.comments
 
 ticket = zoho_conn.tickets.new({
   "subCategory": "Sub General",

@@ -2,9 +2,10 @@ require 'ostruct'
 
 module ZohoService
   class Base < OpenStruct
-    attr_reader :parent, :item_id, :table, :full_data, :errors
+    attr_reader :parent, :item_id, :table, :full_data, :errors, :childs
 
     def initialize(parent = nil, data = nil, params = {})
+      @childs = {}
       @parent = parent
       @item_id = params[:item_id] || ((data && data['id']) ? data['id'] : nil)
       super(data)
@@ -17,6 +18,11 @@ module ZohoService
 
     def get_parent(model, params = {})
       parent
+    end
+
+    def get_childs(child_model, childs_class)
+       @childs[child_model] = ApiCollection.new(self, { items_class: childs_class}) unless @childs[child_model]
+       @childs[child_model]
     end
 
     def full
