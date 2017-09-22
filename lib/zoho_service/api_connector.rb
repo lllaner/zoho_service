@@ -3,14 +3,14 @@ require 'forwardable'
 
 module ZohoService
   class ApiConnector < Base
-    attr_reader :token, :client_params, :debug
+    attr_reader :token, :invalid_token, :client_params, :debug
     def initialize(token_in = nil, client_params_in = {}, debug_in = false)
       raise('Need zoho API token in params for ZohoService::ApiConnector.new') unless token_in
       @token = token_in
       @debug = debug_in
       @client_params = client_params_in
       super()
-      @client_params[:orgId] = organizations.first.id unless @client_params[:orgId]
+      @client_params[:orgId] = organizations.first&.id unless @client_params[:orgId]
     end
 
     def resource_path
@@ -25,6 +25,10 @@ module ZohoService
 
     def load_by_api(url, query = nil, params = {})
       url = URI.encode(url)
+      if @invalid_token
+        $stderr.puts "\n\n Invalid CRMCSRFToken. Check your token in ApiConnector in ZohoService gem! \n\n" if @debug
+        return nil
+      end
       request_params = { headers: get_headers(params) }
       if params[:method] == :post
         response = HTTParty.post(url, request_params.merge(body: query.to_json))
@@ -46,6 +50,7 @@ module ZohoService
     def bad_response(response, url, query, headers, params)
       $stderr.puts "ZohoService API bad_response url=[#{url}], query=[#{query&.to_json}] \n\n params=[#{params.to_json}]\n"
       $stderr.puts(response ? "code=[#{response.code}] body=[#{response.body}]\n" : "Unknown error in load_by_api.\n")
+      @invalid_token = true if response && response.code == 400
     end
 
     class << self
