@@ -21,7 +21,7 @@ module ZohoService
     end
 
     def get_childs(child_model, childs_class)
-       @childs[child_model] = ApiCollection.new(self, { items_class: childs_class}) unless @childs[child_model]
+       @childs[child_model] ||= ApiCollection.new(self, { items_class: childs_class})
        @childs[child_model]
     end
 
@@ -92,8 +92,13 @@ module ZohoService
     end
 
     class << self
+      attr_accessor :model_params
       def class_path(id = nil)
-        "/#{self.name.demodulize.pluralize.underscore}" + (id ? '/'+id : '')
+        "/#{models_name}" + (id ? '/'+id : '')
+      end
+
+      def models_name
+        self.name.demodulize.pluralize.underscore
       end
 
       def new_by_id(parent, id)

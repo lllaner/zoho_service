@@ -7,22 +7,85 @@ module ZohoService
       @parent = parent
       @request_params = attrs # request_params writing only in init proc!
       super()
-    end
-
-    def run_request(eval_method)
-      return if @loaded
-      @loaded = true
-      parent.connector.load_by_api(collection_url)&.each do |item_data|
-        self.push(request_params[:items_class].new(parent, item_data))
+      if accepted_queries.include?('departmentId')
+        @request_params[:query] ||= {}
+        @request_params[:query][:departmentId] ||= parent.connector.client_params[:departmentId]
       end
     end
 
+    def run_request(eval_method)
+      return self if @loaded
+      @loaded = true
+      req_query = @request_params[:query] || {}
+      if accepted_queries.include?('limit') && !(req_query[:from] || req_query[:limit] || request_params[:skip_pages])
+        items_per_page = 50
+        (0..100).each do |page|
+          query = req_query.merge(from: 1 + (items_per_page * page), limit: items_per_page)
+          query.merge!(sortBy: 'createdTime') if accepted_queries.include?('sortBy') && !query[:sortBy]
+          arr = new_collection(query: query).run_request(__method__)
+          arr.each { |x| self.push(x) }
+          break unless arr.count == items_per_page
+        end
+      else
+        parent.connector.load_by_api(collection_url, req_query)&.each do |item_data|
+          self.push(request_params[:items_class].new(parent, item_data))
+        end
+      end
+      self
+    end
+
     def new(item_params)
+      if accepted_queries.include?('departmentId')
+        item_params[:departmentId] ||= parent.connector.client_params[:departmentId]
+      end
+      puts "\n\n item_params=[#{item_params.to_json}] accepted_queries=[#{accepted_queries.to_json}] \n\n"
       request_params[:items_class].new(parent, item_params)
     end
 
     def create(item_params)
       new(item_params).save!
+    end
+
+    def find_or_initialize_by(params, create_params = {})
+      find(params).first || create(params.merge(create_params))
+    end
+
+    def find(params)
+      # this method not normal! It is temporary! Search method not working on the desk.zoho.com.
+      select { |x| params.select { |k, v| x[k.to_sym] == v }.count == params.keys.count }
+    end
+
+    def by_id(id)
+      request_params[:items_class].new_by_id(parent, id)
+    end
+
+    def search(searchStr) # Search method not working on the desk.zoho.com.
+      new_collection(query: { searchStr: searchStr, 'module': request_params[:items_class].models_name, sortBy: 'modifiedTime' })
+    end
+
+    def all
+      run_request(__method__)
+    end
+
+    def accepted_queries
+      if request_params[:query] && request_params[:searchStr]
+        ['from', 'limit', 'sortBy', 'departmentId']
+      else
+        mod = request_params[:items_class]
+        mod.model_params &&  mod.model_params[:queries] ? mod.model_params[:queries] : []
+      end
+    end
+
+    def first(*args, &block)
+      if !@loaded && accepted_queries.include?('limit')
+        return new_collection({ query: { limit: 1 } }).run_request(__method__).first(*args, &block)
+      end
+      run_request(__method__)
+      super(*args, &block)
+    end
+
+    def new_collection(more_params)
+      self.class.new(parent, request_params.merge(more_params))
     end
 
     def collection_url
