@@ -10,13 +10,13 @@ module ZohoService
       @debug = debug_in
       @client_params = client_params_in
       super()
+      @client_params[:api_url] = 'http://desk.zoho.com/api/v1'.freeze unless @client_params[:api_url]
       @client_params[:orgId] = organizations.first&.id unless @client_params[:orgId]
       @client_params[:departmentId] = departments.first&.id unless @client_params[:departmentId]
-      puts "\n\n init done client_params=[#{@client_params.to_json}] \n\n"
     end
 
     def resource_path
-      'https://desk.zoho.com/api/v1'
+      @client_params[:api_url]
     end
 
     def get_headers(params = {})
@@ -29,7 +29,7 @@ module ZohoService
       url = resource_path + '/search' if query && query[:searchStr]
       url = URI.encode(url)
       if @invalid_token
-        $stderr.puts "\n\n Invalid CRMCSRFToken. Check your token in ApiConnector in ZohoService gem! \n\n" if @debug
+        $stderr.puts "Invalid CRMCSRFToken. Check your token in ApiConnector in ZohoService gem!\n" if @debug
         return nil
       end
       request_params = { headers: get_headers(params) }
@@ -52,7 +52,7 @@ module ZohoService
     end
 
     def bad_response(response, url, query, headers, params)
-      $stderr.puts "ZohoService API bad_response url=[#{url}], query=[#{query&.to_json}] \n\n params=[#{params.to_json}]\n"
+      $stderr.puts "ZohoService API bad_response url=[#{url}], query=[#{query&.to_json}] \n params=[#{params.to_json}]\n"
       $stderr.puts(response ? "code=[#{response.code}] body=[#{response.body}]\n" : "Unknown error in load_by_api.\n")
       @invalid_token = true if response && response.code == 400 && response.body&.include?('Invalid CRMCSRFToken')
     end
