@@ -6,6 +6,7 @@ module ZohoService
 
     def initialize(parent = nil, data = nil, params = {})
       @childs = {}
+      @errors = []
       @parent = parent
       @item_id = params[:item_id] || ((data && data['id']) ? data['id'] : nil)
       super(data)
@@ -44,11 +45,13 @@ module ZohoService
     def update(params)
       url = @item_id ? resource_path : parent.resource_path + self.class.class_path
       response = connector.load_by_api(url, params.to_hash, { method: @item_id ? :patch : :post })
-      if response['message']
+      if response && response['message']
         @errors << response['message']
-      else
+      elsif response
         init_data(response.to_hash)
         @full_data = nil
+      else
+        @errors << 'Error while try update'
       end
       self
     end
@@ -56,19 +59,21 @@ module ZohoService
     def delete
       return unless @item_id
       response = connector.load_by_api(resource_path, nil, { method: :delete })
-      if response['message']
+      if response && response['message']
         @errors << response['message']
-      else
+      elsif response
         @item_id = nil
         @id = nil
         @full_data = nil
+      else
+        @errors << 'Error while try delete'
       end
       self
     end
 
     def delete!
       delete
-      raise("Error while delete! in ZohoService gem. errors=[@errors.to_json]") if @errors
+      raise("#{@errors.join("\n")}") if @errors.any?
       self
     end
 
@@ -78,7 +83,7 @@ module ZohoService
 
     def save!
       save
-      raise("Error while save! in ZohoService gem. errors=[@errors.to_json]") if @errors
+      raise("#{@errors.join("\n")}") if @errors.any?
       self
     end
 

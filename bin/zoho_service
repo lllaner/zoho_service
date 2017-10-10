@@ -1,62 +1,80 @@
 #!/usr/bin/env ruby
 require 'zoho_service'
 
-zoho_conn = ZohoService::ApiConnector.new('224d6ade955bbb18f82ebd00f5c6642e', {}, true)
+@zoho_conn = ZohoService::ApiConnector.new('80aea8029f7c4648f1a9d118e0e5df8a', { api_url: 'https://desk.zoho.eu/api/v1' }, true)
 # ticket = zoho_conn.tickets.first
 
 # puts "\n\n tickets=[#{zoho_conn.tickets.to_json}] \n\n"
 # puts "\n\n contacts=[#{zoho_conn.contacts.to_json}] \n\n"
 # puts "\n\n agents=[#{zoho_conn.agents.to_json}] \n\n"
 
-# contacts = zoho_conn.contacts
+# contacts = @zoho_conn.contacts
 
 # puts "\n\n contacts=[#{contacts.to_json}] \n\n"
 
-phone = '+380681765917'
-contact = zoho_conn.contacts.find_or_initialize_by({ phone: phone }, { lastName: 'Client_'+phone })
+phone = '+380681765911'
+# contact = zoho_conn.contacts.find_or_initialize_by({ phone: phone }, { lastName: 'Client_'+phone })
+# @zoho_conn.contacts.create(lastName: name, phone: attrs[:phone], ownerId: crm_id)
 
-# # arr1 = zoho_conn.tickets.map { |x| x.id }.sort
-
-ticket = zoho_conn.tickets.new({
-  "subCategory": "Sub General",
-  "contactId": contact.id,
-  "subject": "100500 started",
-  # "dueDate": (Time.now + 300.days).utc,
-  # "departmentId": zoho_conn.departments.first.id,
-  "channel": "Phone",
-  "description": "Hai This is Description",
-  "assigneeId": zoho_conn.agents.first.id,
-  "phone": phone,
-  "email": "example@example.com",
-  "status": "Open"
-}).save!
-
-# # ticket = zoho_conn.tickets.find({ phone: '1 888 900 9646' })
-# # zoho_conn.tickets
-# # ticket = zoho_conn.tickets.find({ phone: '1 888 900 9646' })
-# # ticket = zoho_conn.tickets.find_or_initialize_by({ productId: '123123', phone: '80681765917' })
-puts "\n\n ticket[#{ticket.count}]=[#{ticket.to_json}] \n\n"
-
-# # contact = zoho_conn.contacts.find({ phone: '80681765917' })
+# # # arr1 = zoho_conn.tickets.map { |x| x.id }.sort
 
 
-# # contact = zoho_conn.contacts.find({ customFields: { custom_id: 123 } })
-# # puts "\n\n contact[#{contact.count}]=[#{contact.to_json}] \n\n"
+def get_agent
+  @zoho_conn.agents&.select { |x| x.id == '258000000002-5005' }.first&.id ||
+  @zoho_conn.agents&.select { |x| x.id == 12312 }.first&.id ||
+  @zoho_conn.agents&.first&.id
+end
 
-task = zoho_conn.tasks.create({
-  ticketId: ticket.id,
-  subject: "New Testing Task #{ticket.id}",
-  # status: "Open",
-  category: 'Call',
-  ownerId: zoho_conn.agents.second.id,
-  creatorId: zoho_conn.agents.second.id,
-  # ownerId: ticket.assigneeId
-  status: "In Progress"
-})
+def create_contact(lead_type, attrs)
+  name = attrs[:name] || "#{lead_type} #{attrs[:phone]}"
+  @zoho_conn.contacts.create(lastName: name, phone: attrs[:phone], ownerId: get_agent() )
+end
 
-# task = zoho_conn.tasks.by_id("217087000000142001")
-# task = zoho_conn.tasks
-puts "\n\n task[#{task.count}]=[#{task.to_json}] \n\n"
+lead_type = 'входящий лид'
+target_phone = '+380666679921'
+
+contact = create_contact(lead_type, phone: target_phone)
+puts "\n\n contact=[#{contact.to_json}] \n\n"
+# ticket = zoho_conn.tickets.new({
+#   "subCategory": "Sub General",
+#   "contactId": contact.id,
+#   "subject": "100500 started",
+#   # "dueDate": (Time.now + 300.days).utc,
+#   # "departmentId": zoho_conn.departments.first.id,
+#   "channel": "Phone",
+#   "description": "Hai This is Description",
+#   "assigneeId": zoho_conn.agents.first.id,
+#   "phone": phone,
+#   "email": "example@example.com",
+#   "status": "Open"
+# }).save!
+
+# # # ticket = zoho_conn.tickets.find({ phone: '1 888 900 9646' })
+# # # zoho_conn.tickets
+# # # ticket = zoho_conn.tickets.find({ phone: '1 888 900 9646' })
+# # # ticket = zoho_conn.tickets.find_or_initialize_by({ productId: '123123', phone: '80681765917' })
+# puts "\n\n ticket[#{ticket.count}]=[#{ticket.to_json}] \n\n"
+
+# # # contact = zoho_conn.contacts.find({ phone: '80681765917' })
+
+
+# # # contact = zoho_conn.contacts.find({ customFields: { custom_id: 123 } })
+# # # puts "\n\n contact[#{contact.count}]=[#{contact.to_json}] \n\n"
+
+# task = zoho_conn.tasks.create({
+#   ticketId: ticket.id,
+#   subject: "New Testing Task #{ticket.id}",
+#   # status: "Open",
+#   category: 'Call',
+#   ownerId: zoho_conn.agents.second.id,
+#   creatorId: zoho_conn.agents.second.id,
+#   # ownerId: ticket.assigneeId
+#   status: "In Progress"
+# })
+
+# # task = zoho_conn.tasks.by_id("217087000000142001")
+# # task = zoho_conn.tasks
+# puts "\n\n task[#{task.count}]=[#{task.to_json}] \n\n"
 
 # puts "\n\n search client =[#{zoho_conn.tickets.search('eeee').to_json}] \n\n"
 # puts "\n\n arr1[#{arr1.count}]=[#{arr1.to_json}] \n\n "

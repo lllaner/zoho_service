@@ -43,7 +43,7 @@ module ZohoService
         url = url + '?' + query.to_query if query
         response = HTTParty.get(url, request_params)
       end
-      if response && response.code == 200
+      if response && (response.code == 200 || response['message'])
         $stderr.puts "url=[#{url}] length=[#{response.to_json.length}] cnt=[#{response['data']&.count}]\n" if @debug
         return response['data'] ? response['data'] : response
       end

@@ -38,7 +38,6 @@ module ZohoService
       if accepted_queries.include?('departmentId')
         item_params[:departmentId] ||= parent.connector.client_params[:departmentId]
       end
-      puts "\n\n item_params=[#{item_params.to_json}] accepted_queries=[#{accepted_queries.to_json}] \n\n"
       request_params[:items_class].new(parent, item_params)
     end
 
