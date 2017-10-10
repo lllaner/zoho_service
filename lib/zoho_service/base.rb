@@ -47,7 +47,7 @@ module ZohoService
       response = connector.load_by_api(url, params.to_hash, { method: @item_id ? :patch : :post })
       if response
         if response.kind_of?(Array)
-          puts "\n\n\n ERROR! response=[#{response.to_json}] \n\n\n"
+          raise("ERROR! create item response is Array[#{response.count}]. Try change http to https in api_url :)!")
         elsif response['message']
           @errors << response['message']
         else
