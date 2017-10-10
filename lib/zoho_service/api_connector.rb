@@ -44,7 +44,7 @@ module ZohoService
         response = HTTParty.get(url, request_params)
       end
       if response && (response.code == 200 || response['message'])
-        $stderr.puts "url=[#{url}] length=[#{response.to_json.length}] cnt=[#{response['data']&.count}]\n" if @debug
+        $stderr.puts "#{params[:method]} url=[#{url}] length=[#{response.to_json.length}] cnt=[#{response['data']&.count}]\n" if @debug
         return response['data'] ? response['data'] : response
       end
       bad_response(response, url, query, get_headers(params), params)

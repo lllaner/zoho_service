@@ -45,11 +45,15 @@ module ZohoService
     def update(params)
       url = @item_id ? resource_path : parent.resource_path + self.class.class_path
       response = connector.load_by_api(url, params.to_hash, { method: @item_id ? :patch : :post })
-      if response && response['message']
-        @errors << response['message']
-      elsif response
-        init_data(response.to_hash)
-        @full_data = nil
+      if response
+        if response.kind_of?(Array)
+          puts "\n\n\n ERROR! response=[#{response.to_json}] \n\n\n"
+        elsif response['message']
+          @errors << response['message']
+        else
+          init_data(response.to_hash)
+          @full_data = nil
+        end
       else
         @errors << 'Error while try update'
       end
