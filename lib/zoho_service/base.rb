@@ -2,7 +2,7 @@ require 'ostruct'
 
 module ZohoService
   class Base < OpenStruct
-    attr_reader :parent, :item_id, :table, :full_data, :errors, :childs
+    attr_reader :parent, :item_id, :table, :full_data, :errors, :childs, :saved
 
     def initialize(parent = nil, data = nil, params = {})
       @childs = {}
@@ -83,6 +83,7 @@ module ZohoService
 
     def save
       update(to_hash)
+      @saved = @errors.any?
     end
 
     def save!

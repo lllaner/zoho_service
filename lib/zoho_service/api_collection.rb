@@ -55,7 +55,7 @@ module ZohoService
       select { |x| params.select { |k, v| x[k.to_sym].to_s == v.to_s }.count == params.keys.count }
     end
 
-    def find_with_str(searchStr, params)
+    def find_with_str(searchStr, params = {})
       search(searchStr).find(params)
     end
 
