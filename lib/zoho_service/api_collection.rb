@@ -20,7 +20,7 @@ module ZohoService
       if accepted_queries.include?('limit') && !(req_query[:from] || req_query[:limit] || request_params[:skip_pages])
         items_per_page = 50
         (0..100).each do |page|
-          query = req_query.merge(from: 1 + (items_per_page * page), limit: items_per_page)
+          query = req_query.merge(from: 0 + (items_per_page * page), limit: items_per_page)
           query.merge!(sortBy: 'createdTime') if accepted_queries.include?('sortBy') && !query[:sortBy]
           arr = new_collection(query: query).run_request(__method__)
           arr.each { |x| self.push(x) }
@@ -46,20 +46,26 @@ module ZohoService
     end
 
     def find_or_initialize_by(params, create_params = {})
-      find(params).first || create(params.merge(create_params))
+      find(params).first || create(params.deep_merge(create_params))
     end
 
     def find(params)
-      # this method not normal! It is temporary! Search method not working on the desk.zoho.com.
-      select { |x| params.select { |k, v| x[k.to_sym] == v }.count == params.keys.count }
+      # this method not normal! It is temporary! Search method not working normal on the desk.zoho.com.
+      # use "search" method if you want search only in texts of a model.
+      select { |x| params.select { |k, v| x[k.to_sym].to_s == v.to_s }.count == params.keys.count }
+    end
+
+    def find_with_str(searchStr, params)
+      search(searchStr).find(params)
     end
 
     def by_id(id)
       request_params[:items_class].new_by_id(parent, id)
     end
 
-    def search(searchStr) # Search method not working on the desk.zoho.com.
-      new_collection(query: { searchStr: searchStr, 'module': request_params[:items_class].models_name, sortBy: 'modifiedTime' })
+    def search(searchStr) # Search method can search only searchStr in texts of a model :( . it`s not good practice :(.
+      new_collection(query: { searchStr: searchStr, 'module': request_params[:items_class].models_name,
+                              sortBy: 'relevance' })
     end
 
     def all
@@ -84,7 +90,7 @@ module ZohoService
     end
 
     def new_collection(more_params)
-      self.class.new(parent, request_params.merge(more_params))
+      self.class.new(parent, request_params.deep_merge(more_params))
     end
 
     def collection_url
