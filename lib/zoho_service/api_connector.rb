@@ -21,7 +21,7 @@ module ZohoService
 
     def get_headers(params = {})
       client_headers = { 'Authorization': 'Zoho-authtoken  ' + @token }
-      client_headers[:orgId] = @client_params[:orgId] if @client_params[:orgId]
+      client_headers[:orgId] = @client_params[:orgId].to_s if @client_params[:orgId]
       self.class.headers.merge(client_headers)
     end
 
