@@ -28,6 +28,7 @@ module ZohoService
         end
       else
         parent.connector.load_by_api(collection_url, req_query)&.each do |item_data|
+          raise("ERROR in ZohoService gem. item_data=[#{item_data}]") unless item_data.is_a?(Hash)
           self.push(request_params[:items_class].new(parent, item_data))
         end
       end

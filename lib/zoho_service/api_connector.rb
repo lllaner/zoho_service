@@ -51,7 +51,7 @@ module ZohoService
       rescue => e
         raise("Can`t Connect to zohoDesk server. Unknown error. Maybe your account blocked.\nurl=[#{url}]\nerror=[#{e}]")
       end
-      if response && (response.code == 200 || response['message'])
+      if response && (response.code == 200 && !response['message'])
         $stderr.puts "#{params[:method]} url=[#{url}] length=[#{response.to_json.length}] cnt=[#{response['data']&.count}]\n" if @debug
         return response['data'] ? response['data'] : response
       elsif response && response.code == 204 # 204 - no content found or from-limit out of range
@@ -64,7 +64,7 @@ module ZohoService
     def bad_response(response, url, query, headers, params)
       $stderr.puts "ZohoService API bad_response url=[#{url}], query=[#{query&.to_json}] \n params=[#{params.to_json}]\n"
       $stderr.puts(response ? "code=[#{response.code}] body=[#{response.body}]\n" : "Unknown error in load_by_api.\n")
-      @invalid_token = true if response && response.code == 400 && response.body&.include?('Invalid CRMCSRFToken')
+      @invalid_token = true if response && (response.code == 400 || response.body&.include?('Invalid CRMCSRFToken'))
     end
 
     class << self
