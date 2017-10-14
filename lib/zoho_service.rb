@@ -1,4 +1,5 @@
 require "zoho_service/version"
+require "zoho_service/Hash"
 require "active_support"
 require "active_support/core_ext"
 require "zoho_service/base"

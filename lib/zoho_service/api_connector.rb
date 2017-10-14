@@ -51,11 +51,13 @@ module ZohoService
       rescue => e
         raise("Can`t Connect to zohoDesk server. Unknown error. Maybe your account blocked.\nurl=[#{url}]\nerror=[#{e}]")
       end
-      if response && (response.code == 200 && !response['message'])
+      if response
         $stderr.puts "#{params[:method]} url=[#{url}] length=[#{response.to_json.length}] cnt=[#{response['data']&.count}]\n" if @debug
-        return response['data'] ? response['data'] : response
-      elsif response && response.code == 204 # 204 - no content found or from-limit out of range
-        return []
+        if response.code == 200 && !response['message']
+          return response['data'] ? response['data'] : response
+        elsif response.code == 204 # 204 - no content found or from-limit out of range
+          return []
+        end
       end
       bad_response(response, url, query, get_headers(params), params)
       nil

@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
   s.description = "Working with data in Zoho Service Desk by using API.".freeze
   s.email = ["chaky22222222@gmail.com".freeze]
   s.executables = ["zoho_service".freeze]
-  s.files = [".coveralls.yml".freeze, ".gitignore".freeze, ".rspec".freeze, "Gemfile".freeze, "LICENSE.txt".freeze, "README.md".freeze, "Rakefile".freeze, "bin/zoho_service".freeze, "lib/zoho_service.rb".freeze, "lib/zoho_service/base.rb".freeze, "lib/zoho_service/api_connector.rb".freeze, "lib/zoho_service/api_collection.rb".freeze, "lib/zoho_service/version.rb".freeze, "spec/spec_helper.rb".freeze, "spec/zoho_service_spec.rb".freeze, "zoho_service.gemspec".freeze]
+  s.files = [".coveralls.yml".freeze, ".gitignore".freeze, ".rspec".freeze, "Gemfile".freeze, "LICENSE.txt".freeze, "README.md".freeze, "Rakefile".freeze, "bin/zoho_service".freeze, "lib/zoho_service.rb".freeze, "lib/zoho_service/Hash.rb".freeze, "lib/zoho_service/base.rb".freeze, "lib/zoho_service/api_connector.rb".freeze, "lib/zoho_service/api_collection.rb".freeze, "lib/zoho_service/version.rb".freeze, "spec/spec_helper.rb".freeze, "spec/zoho_service_spec.rb".freeze, "zoho_service.gemspec".freeze]
   s.homepage = "".freeze
   s.licenses = ["MIT".freeze]
   s.rubygems_version = "2.5.2".freeze

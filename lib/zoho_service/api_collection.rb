@@ -54,7 +54,8 @@ module ZohoService
     def find(params)
       # this method not normal! It is temporary! Search method not working normal on the desk.zoho.com.
       # use "search" method if you want search only in texts of a model.
-      select { |x| params.select { |k, v| x[k.to_sym].to_s == v.to_s }.count == params.keys.count }
+      params = params ? params.deep_symbolize : {}
+      select { |x| x.to_h.deep_symbolize.deep_include?(params) }
     end
 
     def find_with_str(searchStr, params = {})
