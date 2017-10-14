@@ -10,7 +10,7 @@ module ZohoService
       @debug = debug_in
       @client_params = client_params_in
       super()
-      @client_params[:api_url] = 'http://desk.zoho.com/api/v1'.freeze unless @client_params[:api_url]
+      @client_params[:api_url] = 'https://desk.zoho.com/api/v1'.freeze unless @client_params[:api_url]
       @client_params[:orgId] = organizations.first&.id unless @client_params[:orgId]
       @client_params[:departmentId] = departments.first&.id unless @client_params[:departmentId]
       @client_params[:timeout] = @client_params[:timeout] ? @client_params[:timeout].to_i : 5
@@ -33,7 +33,7 @@ module ZohoService
         $stderr.puts "Invalid CRMCSRFToken. Check your token in ApiConnector in ZohoService gem!\n" if @debug
         return nil
       end
-      request_params = { headers: get_headers(params), timeout: @client_params[:timeout], no_follow: true, limit: 0,
+      request_params = { headers: get_headers(params), timeout: @client_params[:timeout], no_follow: true, limit: 1,
                          follow_redirects: false, read_timeout: @client_params[:timeout] }
       begin
         response = if params[:method] == :post
@@ -47,7 +47,7 @@ module ZohoService
                       HTTParty.get(url, request_params)
                     end
       rescue HTTParty::RedirectionTooDeep => e
-        raise("Can`t Connect to zohoDesk server. RedirectionTooDeep. Maybe your account blocked.\nurl=[#{url}]\nerror=[#{e}]")
+        raise("Can`t Connect to zohoDesk server. RedirectionTooDeep. Check https or maybe your account blocked.\nurl=[#{url}]\nerror=[#{e}]")
       rescue => e
         raise("Can`t Connect to zohoDesk server. Unknown error. Maybe your account blocked.\nurl=[#{url}]\nerror=[#{e}]")
       end
