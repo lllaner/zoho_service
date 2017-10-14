@@ -13,6 +13,7 @@ module ZohoService
       @client_params[:api_url] = 'http://desk.zoho.com/api/v1'.freeze unless @client_params[:api_url]
       @client_params[:orgId] = organizations.first&.id unless @client_params[:orgId]
       @client_params[:departmentId] = departments.first&.id unless @client_params[:departmentId]
+      @client_params[:timeout] = @client_params[:timeout] ? @client_params[:timeout].to_i : 5
     end
 
     def resource_path
@@ -32,16 +33,23 @@ module ZohoService
         $stderr.puts "Invalid CRMCSRFToken. Check your token in ApiConnector in ZohoService gem!\n" if @debug
         return nil
       end
-      request_params = { headers: get_headers(params) }
-      if params[:method] == :post
-        response = HTTParty.post(url, request_params.merge(body: query.to_json))
-      elsif params[:method] == :patch
-        response = HTTParty.patch(url, request_params.merge(body: query.to_json))
-      elsif params[:method] == :delete
-        response = HTTParty.delete(url, request_params)
-      else
-        url = url + '?' + query.to_query if query
-        response = HTTParty.get(url, request_params)
+      request_params = { headers: get_headers(params), timeout: @client_params[:timeout], no_follow: true, limit: 0,
+                         follow_redirects: false, read_timeout: @client_params[:timeout] }
+      begin
+        response = if params[:method] == :post
+                      HTTParty.post(url, request_params.merge(body: query.to_json))
+                    elsif params[:method] == :patch
+                      HTTParty.patch(url, request_params.merge(body: query.to_json))
+                    elsif params[:method] == :delete
+                      HTTParty.delete(url, request_params)
+                    else
+                      url = url + '?' + query.to_query if query
+                      HTTParty.get(url, request_params)
+                    end
+      rescue HTTParty::RedirectionTooDeep => e
+        raise("Can`t Connect to zohoDesk server. RedirectionTooDeep. Maybe your account blocked.\nurl=[#{url}]\nerror=[#{e}]")
+      rescue => e
+        raise("Can`t Connect to zohoDesk server. Unknown error. Maybe your account blocked.\nurl=[#{url}]\nerror=[#{e}]")
       end
       if response && (response.code == 200 || response['message'])
         $stderr.puts "#{params[:method]} url=[#{url}] length=[#{response.to_json.length}] cnt=[#{response['data']&.count}]\n" if @debug
