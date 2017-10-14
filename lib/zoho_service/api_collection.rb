@@ -21,11 +21,11 @@ module ZohoService
         items_per_page = 50
         (0..100).each do |page|
           query = req_query.merge(from: 0 + (items_per_page * page), limit: items_per_page)
-          query[:limit] -= 1 if page == 0 # WTF bug with from-limit on zoho server!
+          query[:from] += 1 if query[:from] > 0 # WTF bug with from-limit on zoho server!
           query.merge!(sortBy: 'createdTime') if accepted_queries.include?('sortBy') && !query[:sortBy]
           arr = new_collection(query: query).run_request(__method__)
           arr.each { |x| self.push(x); puts "#{x.id} " }
-          break unless arr.count == query[:limit]
+          break unless arr.count == items_per_page
         end
       else
         parent.connector.load_by_api(collection_url, req_query)&.each do |item_data|
