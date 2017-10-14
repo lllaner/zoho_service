@@ -24,7 +24,7 @@ module ZohoService
           query[:from] += 1 if query[:from] > 0 # WTF bug with from-limit on zoho server!
           query.merge!(sortBy: 'createdTime') if accepted_queries.include?('sortBy') && !query[:sortBy]
           arr = new_collection(query: query).run_request(__method__)
-          arr.each { |x| self.push(x); puts "#{x.id} " }
+          arr.each { |x| self.push(x) }
           break unless arr.count == items_per_page
         end
       else
