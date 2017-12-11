@@ -55,7 +55,7 @@ module ZohoService
           @full_data = nil
         end
       else
-        @errors << 'Error while try update'
+        @errors << "Error while try update[#{@item_id}] url=[#{url}] params=[#{params&.to_json}]"
       end
       self
     end
