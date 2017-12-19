@@ -2,12 +2,12 @@ require 'ostruct'
 
 module ZohoService
   class Base < OpenStruct
-    attr_reader :parent, :item_id, :table, :full_data, :errors, :childs, :saved
+    attr_reader :parents, :item_id, :table, :full_data, :errors, :childs, :saved
 
     def initialize(parent = nil, data = nil, params = {})
       @childs = {}
       @errors = []
-      @parent = parent
+      @parents = parent ? { parent.class.name.demodulize.underscore.to_sym => parent } : {}
       @item_id = params[:item_id] || ((data && data['id']) ? data['id'] : nil)
       super(data)
       @full_data = params[:full_data]
@@ -17,8 +17,12 @@ module ZohoService
       parent ? parent.connector : self
     end
 
+    def parent
+      @parents[self.class.default_parent_name] || @parents.values.first
+    end
+
     def get_parent(model, params = {})
-      parent
+      @parents[model.to_sym]
     end
 
     def get_childs(child_model, childs_class)
@@ -102,7 +106,7 @@ module ZohoService
     end
 
     class << self
-      attr_accessor :model_params
+      attr_accessor :model_params, :default_parent_name
       def class_path(id = nil)
         "/#{models_name}" + (id ? '/'+id : '')
       end

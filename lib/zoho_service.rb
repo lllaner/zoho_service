@@ -22,9 +22,15 @@ module ZohoService
     models = tree.map { |m| m.kind_of?(Array) ? { name: m.first, childs: m.second, params: m.third } : { name: m } }
     models.each do |model|
       # puts "\n try init parent_name2=[#{parent_name}] recursion=[#{recursion}] mod=[#{model.to_json}] \n"
-      current_class = Class.new(Base)
-      const_set(model[:name], current_class)
-      current_class.model_params = model[:params]
+      current_class = nil
+      if const_defined?(model[:name])
+        current_class = const_get(model[:name])
+      else
+        current_class = Class.new(Base)
+        const_set(model[:name], current_class)
+        current_class.model_params = model[:params]
+        current_class.default_parent_name = parent_name
+      end
       current_class.send(:define_method, parent_name) { |params = {}| get_parent(__method__, params) }
       parent_class.send(:define_method, ZohoService::name_to_many(model[:name])) do
         get_childs(__method__.to_sym, current_class)
@@ -38,6 +44,6 @@ end
 ZohoService::init_models_recursion(5, ([
   #[model_name, [childs_array], {params}]
   ['Ticket', %w[Comment Thread Attachment TimeEntry], { queries: %w[from limit departmentId sortBy include] }],
-  ['Contact', nil, { queries: %w[from limit sortBy include] }],
+  ['Contact', %w[Ticket], { queries: %w[from limit sortBy include] }],
   ['Task', nil, { queries: %w[from limit departmentId sortBy include] }]
 ] + %w[Organization Account Agent Department]), ZohoService::ApiConnector)
