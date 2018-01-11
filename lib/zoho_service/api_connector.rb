@@ -57,16 +57,25 @@ module ZohoService
           return response['data'] ? response['data'] : response
         elsif response.code == 204 # 204 - no content found or from-limit out of range
           return []
+        elsif response.code == 400 # 400 - Invalid CRMCSRFToken
+          invalid_CRMCSRFToken()
+        else
+          invalid_CRMCSRFToken() if response.body&.include?('Invalid CRMCSRFToken')
         end
       end
       bad_response(response, url, query, get_headers(params), params)
       nil
     end
 
+    def invalid_CRMCSRFToken
+      @invalid_token = true
+      raise('Invalid CRMCSRFToken. Check your token in ApiConnector in ZohoService gem!')
+    end
+
     def bad_response(response, url, query, headers, params)
-      $stderr.puts "ZohoService API bad_response url=[#{url}], query=[#{query&.to_json}] \n params=[#{params.to_json}]\n"
-      $stderr.puts(response ? "code=[#{response.code}] body=[#{response.body}]\n" : "Unknown error in load_by_api.\n")
-      @invalid_token = true if response && (response.code == 400 || response.body&.include?('Invalid CRMCSRFToken'))
+      error_str = "ZohoService API bad_response url=[#{url}], query=[#{query&.to_json}]\nparams=[#{params.to_json}]\n"
+      error_str += response ? "code=[#{response.code}] body=[#{response.body}]\n" : "Unknown error in load_by_api.\n"
+      raise error_str
     end
 
     class << self
