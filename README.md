@@ -9,6 +9,7 @@ https://desk.zoho.com/DeskAPIDocument#Introduction
 - [x] organizations
 - [x] tickets [comments threads attachments timeEntries]
 - [x] contacts
+  - [x] tasks
 - [x] accounts
 - [x] tasks
 - [x] agents
