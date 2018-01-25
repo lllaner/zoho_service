@@ -29,10 +29,8 @@ module ZohoService
     def load_by_api(url, query = nil, params = {})
       url = resource_path + '/search' if query && query[:searchStr]
       url = URI.encode(url)
-      if @invalid_token
-        $stderr.puts "Invalid CRMCSRFToken. Check your token in ApiConnector in ZohoService gem!\n" if @debug
-        return nil
-      end
+      raise "Invalid CRMCSRFToken. Check your token in ApiConnector in ZohoService gem!\n" if @invalid_token
+
       request_params = { headers: get_headers(params), timeout: @client_params[:timeout], no_follow: true, limit: 1,
                          follow_redirects: false, read_timeout: @client_params[:timeout] }
       begin
