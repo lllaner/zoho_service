@@ -33,6 +33,7 @@ module ZohoService
 
       request_params = { headers: get_headers(params), timeout: @client_params[:timeout], no_follow: true, limit: 1,
                          follow_redirects: false, read_timeout: @client_params[:timeout] }
+      response = nil
       begin
         response = if params[:method] == :post
                       HTTParty.post(url, request_params.merge(body: query.to_json))
@@ -51,7 +52,8 @@ module ZohoService
       end
       if response
         $stderr.puts "#{params[:method]} url=[#{url}] length=[#{response.to_json.length}] cnt=[#{response['data']&.count}]\n" if @debug
-        if response.code == 200 && !response['message']
+        if response.code == 200
+          raise "Error message in ZohoService gem: \n[#{ response['message'] }]\n" if response['message']
           return response['data'] ? response['data'] : response
         elsif response.code == 204 # 204 - no content found or from-limit out of range
           return []
