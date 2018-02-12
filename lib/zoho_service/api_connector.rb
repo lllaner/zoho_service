@@ -57,10 +57,8 @@ module ZohoService
           return response['data'] ? response['data'] : response
         elsif response.code == 204 # 204 - no content found or from-limit out of range
           return []
-        elsif response.code == 400 # 400 - Invalid CRMCSRFToken
-          invalid_CRMCSRFToken(response)
         else
-          invalid_CRMCSRFToken(response) if response.body&.include?('Invalid CRMCSRFToken')
+          invalid_CRMCSRFToken(response)
         end
       end
       bad_response(response, url, query, get_headers(params), params)
@@ -69,8 +67,7 @@ module ZohoService
 
     def invalid_CRMCSRFToken(response)
       @invalid_token = true
-      message = 'Invalid CRMCSRFToken. Check your token in ApiConnector in ZohoService gem!'
-      message.concat 'Response body: '
+      message = 'Response body: '
       message.concat response.body
       message.concat '. Status: '
       message.concat response.code
