@@ -67,7 +67,7 @@ module ZohoService
       nil
     end
 
-    def invalid_CRMCSRFToken
+    def invalid_CRMCSRFToken(response)
       @invalid_token = true
       message = 'Invalid CRMCSRFToken. Check your token in ApiConnector in ZohoService gem!'
       message.concat 'Response body: '
