@@ -42,7 +42,9 @@ module ZohoService
                     elsif params[:method] == :delete
                       HTTParty.delete(url, request_params)
                     else
-                      url = url + '?' + query.to_query if query
+                      query ||= {}
+                      query[:limit] = 200
+                      url = url + '?' + query.to_query
                       HTTParty.get(url, request_params)
                     end
       rescue HTTParty::RedirectionTooDeep => e
