@@ -16,7 +16,7 @@ module ZohoService
     def run_request(eval_method)
       return self if @loaded
       @loaded = true
-      req_query = @request_params[:query] || { limit: 200 }
+      req_query = @request_params[:query] || {}
       if accepted_queries.include?('limit') && !(req_query[:from] || req_query[:limit] || request_params[:skip_pages])
         items_per_page = 50
         (0..100).each do |page|
