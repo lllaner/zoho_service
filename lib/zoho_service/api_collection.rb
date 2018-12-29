@@ -17,8 +17,8 @@ module ZohoService
       return self if @loaded
       @loaded = true
       req_query = @request_params[:query] || {}
-      if accepted_queries.include?('limit') && !(req_query[:from] || req_query[:limit] || request_params[:skip_pages])
-        items_per_page = 50
+      if (eval_method == :all || accepted_queries.include?('limit')) && !(req_query[:from] || req_query[:limit] || request_params[:skip_pages])
+        items_per_page = 200
         (0..100).each do |page|
           query = req_query.merge(from: 0 + (items_per_page * page), limit: items_per_page)
           query[:from] += 1 if query[:from] > 0 # WTF bug with from-limit on zoho server!
