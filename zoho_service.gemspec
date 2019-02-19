@@ -26,16 +26,16 @@ Gem::Specification.new do |s|
     s.specification_version = 4
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<httparty>.freeze, ["0.13.7"])
-      s.add_runtime_dependency(%q<activesupport>.freeze, ["~> 4.2.7.1"])
+      s.add_runtime_dependency(%q<httparty>.freeze, [">= 0"])
+      s.add_runtime_dependency(%q<activesupport>.freeze, [">= 0"])
       s.add_development_dependency(%q<bundler>.freeze, ["~> 1.5"])
       s.add_development_dependency(%q<rake>.freeze, ["< 11.0"])
       s.add_development_dependency(%q<rspec>.freeze, ["~> 2.14.1"])
       s.add_development_dependency(%q<simplecov>.freeze, ["~> 0.7.1"])
       s.add_development_dependency(%q<coveralls>.freeze, ["~> 0.7.0"])
     else
-      s.add_dependency(%q<httparty>.freeze, ["0.13.7"])
-      s.add_dependency(%q<activesupport>.freeze, ["~> 4.2.7.1"])
+      s.add_dependency(%q<httparty>.freeze, [">= 0"])
+      s.add_dependency(%q<activesupport>.freeze, [">= 0"])
       s.add_dependency(%q<bundler>.freeze, ["~> 1.5"])
       s.add_dependency(%q<rake>.freeze, ["< 11.0"])
       s.add_dependency(%q<rspec>.freeze, ["~> 2.14.1"])
@@ -43,8 +43,8 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<coveralls>.freeze, ["~> 0.7.0"])
     end
   else
-    s.add_dependency(%q<httparty>.freeze, ["0.13.7"])
-    s.add_dependency(%q<activesupport>.freeze, ["~> 4.2.7.1"])
+    s.add_dependency(%q<httparty>.freeze, [">= 0"])
+    s.add_dependency(%q<activesupport>.freeze, [">= 0"])
     s.add_dependency(%q<bundler>.freeze, ["~> 1.5"])
     s.add_dependency(%q<rake>.freeze, ["< 11.0"])
     s.add_dependency(%q<rspec>.freeze, ["~> 2.14.1"])
