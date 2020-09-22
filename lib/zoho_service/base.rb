@@ -42,7 +42,7 @@ module ZohoService
     end
 
     def init_data(data)
-      data.each{ |k, v| @table[k.to_sym] = v; new_ostruct_member(k); }
+      data.each{ |k, v| @table[k.to_sym] = v; new_ostruct_member!(k); }
       @item_id = id if id && !@item_id
     end
 
