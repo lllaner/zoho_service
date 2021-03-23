@@ -1,15 +1,28 @@
 require 'httparty'
 require 'forwardable'
+require 'oauth2'
 
 module ZohoService
   class ApiConnector < Base
-    attr_reader :token, :invalid_token, :client_params, :debug
-    def initialize(token_in = nil, client_params_in = {}, debug_in = false)
-      raise('Need zoho API token in params for ZohoService::ApiConnector.new') unless token_in
-      @token = token_in
+    DEFAULT_SCOPES = %w[Desk.tickets.ALL
+                        Desk.tasks.ALL
+                        Desk.contacts.ALL
+                        Desk.basic.ALL
+                        Desk.settings.ALL
+                        Desk.search.READ
+                        Desk.events.ALL
+                        Desk.articles.ALL].freeze
+
+    attr_reader :token, :invalid_token, :client_params, :debug, :api_endpoint, :client_id, :client_secret, :redirect_uri
+    def initialize(client_params_in = {}, debug_in = false)
       @debug = debug_in
       @client_params = client_params_in
       super()
+      @api_endpoint  = @client_params[:api_endpoint]
+      @client_id     = @client_params[:client_id]
+      @client_secret = @client_params[:client_secret]
+      @redirect_uri  = @client_params[:redirect_uri]
+      @access_token  = @client_params[:access_token]
       @client_params[:api_url] = 'https://desk.zoho.com/api/v1'.freeze unless @client_params[:api_url]
       @client_params[:orgId] = organizations.first&.id unless @client_params[:orgId]
       @client_params[:departmentId] = departments.first&.id unless @client_params[:departmentId]
@@ -21,7 +34,7 @@ module ZohoService
     end
 
     def get_headers(params = {})
-      client_headers = { 'Authorization': 'Zoho-authtoken  ' + @token }
+      client_headers = { 'Authorization': 'Zoho-oauthtoken  ' + @access_token }
       client_headers[:orgId] = @client_params[:orgId].to_s if @client_params[:orgId]
       self.class.headers.merge(client_headers)
     end
@@ -78,6 +91,59 @@ module ZohoService
       error_str = "ZohoService API bad_response url=[#{url}], query=[#{query&.to_json}]\nparams=[#{params.to_json}]\n"
       error_str += response ? "code=[#{response.code}] body=[#{response.body}]\n" : "Unknown error in load_by_api.\n"
       raise error_str
+    end
+
+    def oauth2client
+      @_oauth2client ||=
+        OAuth2::Client.new(
+          client_id,
+          client_secret,
+          site: api_endpoint,
+          authorize_url: '/oauth/v2/auth',
+          token_url: '/oauth/v2/token'
+        )
+    end
+
+    def authorize_url
+      return nil unless oauth2client
+
+      oauth2client.auth_code.authorize_url(
+        redirect_uri: redirect_uri,
+        scope: DEFAULT_SCOPES.join(','),
+        access_type: 'offline'
+      )
+    end
+
+    def fetch_access_token(code)
+      return unless oauth2client
+      @_oauth2client.site = api_endpoint
+
+      token = oauth2client.auth_code.get_token(code, redirect_uri: redirect_uri)
+      token.params.merge(
+        access_token: token.token,
+        refresh_token: token.refresh_token,
+        expires_at: token.expires_at,
+        expires_in: token.expires_in
+      )
+    rescue OAuth2::Error => e
+      puts e #FIXME if ::Amorail.debug
+    end
+
+    def fetch_refresh_token(refresh_token)
+      return unless oauth2client
+      @_oauth2client.site = api_endpoint
+
+      token = oauth2client.get_token(
+        refresh_token: refresh_token,
+        grant_type: 'refresh_token'
+      )
+      token.params.merge(
+        access_token: token.token,
+        refresh_token: token.refresh_token,
+        expires_at: token.expires_at
+      )
+    rescue OAuth2::Error => e
+      puts e #FIXME if  ::Amorail.debug
     end
 
     class << self
